@@ -1,1 +1,1 @@
-# LVM-EBM-SOD
+# SalCoopNets
