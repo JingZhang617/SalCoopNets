@@ -58,8 +58,8 @@ generator_optimizer = torch.optim.Adam(generator_params, opt.lr_gen)
 descriptor_optimizer = torch.optim.Adam(descriptor_params, opt.lr_des)
 
 
-image_root = '/home/jingzhang/jing_files/RGB_Dataset/train/DUTS/img/'
-gt_root = '/home/jingzhang/jing_files/RGB_Dataset/train/DUTS/gt/'
+image_root = './train/DUTS/img/'
+gt_root = './train/DUTS/gt/'
 
 train_loader, training_set_size = get_loader(image_root, gt_root, batchsize=opt.batchsize, trainsize=opt.trainsize)
 total_step = len(train_loader)
