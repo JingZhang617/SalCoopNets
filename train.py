@@ -29,7 +29,7 @@ parser.add_argument('--decay_epoch', type=int, default=20, help='every n epochs 
 parser.add_argument('-beta1_gen', type=float, default=0.5,help='beta of Adam for generator')
 parser.add_argument('-beta1_des', type=float, default=0.5,help='beta of Adam for descriptor')
 
-parser.add_argument('--latent_dim', type=int, default=6, help='latent dim')
+parser.add_argument('--latent_dim', type=int, default=8, help='latent dim')
 parser.add_argument('--channel_reduced_gen', type=int, default=32, help='reduced channel dimension for generator')
 
 parser.add_argument('--langevin_step_num_gen', type=float, default=3, help='langevin step num of generator')
