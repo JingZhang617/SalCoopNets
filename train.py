@@ -4,7 +4,7 @@ from torch.autograd import Variable
 
 import numpy as np
 import pdb, os, argparse
-os.environ["CUDA_VISIBLE_DEVICES"] = '0'
+os.environ["CUDA_VISIBLE_DEVICES"] = '1'
 from datetime import datetime
 
 from model.ResNet_models import Generator, Descriptor
@@ -19,8 +19,8 @@ import torchvision.transforms as transforms
 parser = argparse.ArgumentParser()
 parser.add_argument('--epoch', type=int, default=30, help='epoch number')
 parser.add_argument('--lr_gen', type=float, default=5e-5, help='learning rate')
-parser.add_argument('--lr_des', type=float, default=1e-3, help='learning rate')
-parser.add_argument('--batchsize', type=int, default=10, help='training batch size')
+parser.add_argument('--lr_des', type=float, default=1e-5, help='learning rate')
+parser.add_argument('--batchsize', type=int, default=1, help='training batch size')
 parser.add_argument('--trainsize', type=int, default=352, help='training dataset size')
 parser.add_argument('--clip', type=float, default=0.5, help='gradient clipping margin')
 parser.add_argument('--des_sim_weight', type=float, default=0.3, help='descrimitor similarity weight')
@@ -84,26 +84,6 @@ def structure_loss(pred, mask):
     wiou  = 1-(inter+1)/(union-inter+1)
     return (wbce+wiou).mean()
 
-def visualize_original_img(rec_img):
-    img_transform = transforms.Compose([
-        transforms.Normalize(mean = [-0.4850/.229, -0.456/0.224, -0.406/0.225], std =[1/0.229, 1/0.224, 1/0.225])])
-    for kk in range(rec_img.shape[0]):
-        current_img = rec_img[kk,:,:,:]
-        current_img = img_transform(current_img)
-        current_img = current_img.detach().cpu().numpy().squeeze()
-        current_img = current_img * 255
-        current_img = current_img.astype(np.uint8)
-        name = '{:02d}_img.png'.format(kk)
-        current_img = current_img.transpose((1,2,0))
-        current_b = current_img[:, :, 0]
-        current_b = np.expand_dims(current_b, 2)
-        current_g = current_img[:, :, 1]
-        current_g = np.expand_dims(current_g, 2)
-        current_r = current_img[:, :, 2]
-        current_r = np.expand_dims(current_r, 2)
-        new_img = np.concatenate((current_r, current_g, current_b), axis=2)
-        cv2.imwrite(save_path+name, new_img)
-
 def visualize_uncertainty1(var_map):
 
     for kk in range(var_map.shape[0]):
@@ -112,26 +92,6 @@ def visualize_uncertainty1(var_map):
         pred_edge_kk *= 255.0
         pred_edge_kk = pred_edge_kk.astype(np.uint8)
         name = '{:02d}_gen_final.png'.format(kk)
-        cv2.imwrite(save_path + name, pred_edge_kk)
-
-def visualize_pred_gt(pred,gt):
-
-    for kk in range(pred.shape[0]):
-        pred_edge_kk = pred[kk,:,:,:]
-        pred_edge_kk = pred_edge_kk.detach().cpu().numpy().squeeze()
-        pred_edge_kk = (pred_edge_kk - pred_edge_kk.min()) / (pred_edge_kk.max() - pred_edge_kk.min() + 1e-8)
-        pred_edge_kk *= 255.0
-        pred_edge_kk = pred_edge_kk.astype(np.uint8)
-        name = '{:02d}_pred.png'.format(kk)
-        cv2.imwrite(save_path + name, pred_edge_kk)
-
-    for kk in range(gt.shape[0]):
-        pred_edge_kk = gt[kk,:,:,:]
-        pred_edge_kk = pred_edge_kk.detach().cpu().numpy().squeeze()
-        pred_edge_kk = (pred_edge_kk - pred_edge_kk.min()) / (pred_edge_kk.max() - pred_edge_kk.min() + 1e-8)
-        pred_edge_kk *= 255.0
-        pred_edge_kk = pred_edge_kk.astype(np.uint8)
-        name = '{:02d}_gt.png'.format(kk)
         cv2.imwrite(save_path + name, pred_edge_kk)
 
 def visualize_uncertainty2(var_map):
@@ -162,16 +122,6 @@ def visualize_uncertainty4(var_map):
         pred_edge_kk *= 255.0
         pred_edge_kk = pred_edge_kk.astype(np.uint8)
         name = '{:02d}_gen_init.png'.format(kk)
-        cv2.imwrite(save_path + name, pred_edge_kk)
-
-def visualize_des_gen_residual(var_map):
-
-    for kk in range(var_map.shape[0]):
-        pred_edge_kk = var_map[kk,:,:,:]
-        pred_edge_kk = pred_edge_kk.detach().cpu().numpy().squeeze()
-        pred_edge_kk *= 255.0
-        pred_edge_kk = pred_edge_kk.astype(np.uint8)
-        name = '{:02d}_res.png'.format(kk)
         cv2.imwrite(save_path + name, pred_edge_kk)
 
 def visualize_gt(var_map):

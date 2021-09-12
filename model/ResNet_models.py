@@ -42,7 +42,7 @@ class Descriptor(nn.Module):
     def __init__(self, channel):
         super(Descriptor, self).__init__()
         self.channel_axis = 1
-        self.num_fc = 1
+        self.num_fc = 100
         self.name = 'descriptor'
 
         self.conv1 = nn.Conv2d(4, channel, 3, 1, 1, bias=False)
@@ -50,12 +50,6 @@ class Descriptor(nn.Module):
         self.conv3 = nn.Conv2d(channel * 2, channel * 4, 4, 2, 1, bias=False)
         self.conv4 = nn.Conv2d(channel * 4, channel * 8, 4, 2, 1, bias=False)
         self.conv5 = nn.Conv2d(channel * 8, 1, 4, 1, 0)
-
-        # self.conv1 = nn.Conv2d(4, channel, kernel_size=4, stride=2, padding=1)
-        # self.conv2 = nn.Conv2d(channel, channel * 2, kernel_size=4, stride=2, padding=1)
-        # self.conv3 = nn.Conv2d(channel * 2, channel * 4, kernel_size=4, stride=2, padding=1)
-        # self.conv4 = nn.Conv2d(channel * 4, channel * 8, kernel_size=4, stride=2, padding=1)
-        # self.conv5 = nn.Conv2d(channel * 8, 1, kernel_size=3, stride=1, padding=1)
 
         self.bn1 = nn.BatchNorm2d(channel)
         self.bn2 = nn.BatchNorm2d(channel*2)
@@ -65,8 +59,9 @@ class Descriptor(nn.Module):
 
         self.leaky_relu = nn.LeakyReLU(negative_slope=0.2, inplace=True)
 
-        #self.leakyrelu = nn.LeakyReLU()
-        self.fc = nn.Linear(1*41*41, self.num_fc)
+        self.fc1 = nn.Linear(1*1*29*29, self.num_fc)
+        self.fc2 = nn.Linear(1 * 1 * 41 * 41, self.num_fc)
+        self.fc3 = nn.Linear(1 * 1 * 53 * 53, self.num_fc)
 
     def forward(self, input, seg):
         feature_map = torch.cat((input, seg), 1)
@@ -83,11 +78,16 @@ class Descriptor(nn.Module):
         x = self.bn4(x)
         x = self.leaky_relu(x)
         x = self.conv5(x)
-        # print(x.size())
-        # output = self.fc(x.view(x.size(0), -1))
-        # print(output1.size())
-        return x
-        # return output
+        if x.shape[2] == 29:
+            x = x.view(-1, 1 * 1 * 29 * 29)
+            feat = self.fc1(x)
+        elif x.shape[2] == 41:
+            x = x.view(-1, 1 * 1 * 41 * 41)
+            feat = self.fc2(x)
+        else:
+            x = x.view(-1, 1 * 1 * 53 * 53)
+            feat = self.fc3(x)
+        return feat
 
 
 class Generator(nn.Module):
@@ -377,10 +377,10 @@ class Pred_decoder(nn.Module):
         return torch.index_select(a, dim, order_index)
 
     def forward(self, x1,x2,x3,x4, z):
-        conv1_feat = self.conv1(self.dropout(x1))
-        conv2_feat = self.conv2(self.dropout(x2))
-        conv3_feat = self.conv3(self.dropout(x3))
-        conv4_feat = self.conv4(self.dropout(x4))
+        conv1_feat = self.conv1(x1)
+        conv2_feat = self.conv2(x2)
+        conv3_feat = self.conv3(x3)
+        conv4_feat = self.conv4(x4)
 
         z = torch.unsqueeze(z, 2)
         z = self.tile(z, 2, conv4_feat.shape[self.spatial_axes[0]])
